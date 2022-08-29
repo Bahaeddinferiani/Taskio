@@ -2,12 +2,17 @@ const express = require("express");
 const User = require("../models/user");
 const userRouter = new express.Router();
 const bcrypt = require("bcrypt");
+//hashing pwd/////////////////////////////////
+const securepwd = async (pwd) => {
+  let hashed = await bcrypt.hash(pwd, 4);
+  return hashed;
+};
+//////////////////////////////////////////////
 
 //create user (name,age,email,pwd)////////////
 userRouter.post("/users", async (req, res) => {
   let userInfo = req.body;
-  let hashed = await bcrypt.hash(userInfo.password, 14);
-  userInfo.password = hashed;
+  userInfo.password = await securepwd(userInfo.password);
   const user = new User(userInfo);
 
   try {
@@ -59,6 +64,9 @@ userRouter.patch("/users/:id", async (req, res) => {
         return false;
       }
     }
+    if (keys.includes("password")) {
+      req.body.password = await securepwd(req.body.password);
+    }
     return true;
   };
   try {
@@ -66,7 +74,10 @@ userRouter.patch("/users/:id", async (req, res) => {
     if (!verification) {
       return res.status(404).send();
     }
-    const user = await User.findByIdAndUpdate(_id, req.body, { new: true });
+    const user = await User.findByIdAndUpdate(_id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     await user.save();
 
     if (!user) {
@@ -76,6 +87,7 @@ userRouter.patch("/users/:id", async (req, res) => {
     res.send(user);
   } catch (e) {
     res.status(500).send();
+    console.log(e);
   }
 });
 /////////////////////////////////////////////

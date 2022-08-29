@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const validator = require("validator");
-const usermodel = {
+const usermodel = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -30,6 +31,7 @@ const usermodel = {
       }
     },
   },
-};
+});
+
 const user = mongoose.model("users", usermodel);
 module.exports = user;
