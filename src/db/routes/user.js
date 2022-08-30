@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/user");
 const userRouter = new express.Router();
 const bcrypt = require("bcrypt");
+
 //hashing pwd/////////////////////////////////
 const securepwd = async (pwd) => {
   let hashed = await bcrypt.hash(pwd, 4);
