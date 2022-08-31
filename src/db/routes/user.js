@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/user");
 const userRouter = new express.Router();
 const bcrypt = require("bcrypt");
+var jwt = require("jsonwebtoken");
 
 //hashing pwd/////////////////////////////////
 const securepwd = async (pwd) => {
@@ -15,6 +16,9 @@ userRouter.post("/users", async (req, res) => {
   let userInfo = req.body;
   userInfo.password = await securepwd(userInfo.password);
   const user = new User(userInfo);
+  const token = jwt.sign({ _id: user._id.toString() }, "shhhhh");
+
+  user.tokens = user.tokens.concat({ token: token });
 
   try {
     await user.save();

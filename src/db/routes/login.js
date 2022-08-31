@@ -3,6 +3,8 @@ const loginRouter = express.Router();
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const user = require("./../models/user");
+var jwt = require("jsonwebtoken");
+
 //login user//////////////////////////////////
 
 loginRouter.post("/login", async (req, res) => {
@@ -21,6 +23,10 @@ loginRouter.post("/login", async (req, res) => {
   }
 
   let access = await bcrypt.compare(password, userInfo[0].password);
+  const token = jwt.sign({ _id: userInfo[0]._id.toString() }, "shhhhh");
+  var decoded = await jwt.verify(token, "shhhhh");
+  userInfo[0].tokens = userInfo[0].tokens.concat({ token: token });
+
   if (access) {
     return res.send("logged in!");
   }

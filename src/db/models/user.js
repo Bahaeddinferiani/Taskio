@@ -13,6 +13,7 @@ const usermodel = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
+    lowercase: true,
     required: true,
 
     validate(email) {
@@ -21,6 +22,14 @@ const usermodel = new mongoose.Schema({
       }
     },
   },
+
+  tokens: [
+    {
+      token: {
+        type: String,
+      },
+    },
+  ],
   password: {
     type: String,
     required: true,
