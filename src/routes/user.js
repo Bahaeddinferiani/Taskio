@@ -3,6 +3,7 @@ const User = require("../models/user");
 const userRouter = new express.Router();
 const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
+const auth = require("../middleware/auth");
 
 //hashing pwd/////////////////////////////////
 const securepwd = async (pwd) => {
@@ -17,9 +18,7 @@ userRouter.post("/users", async (req, res) => {
   userInfo.password = await securepwd(userInfo.password);
   const user = new User(userInfo);
   const token = jwt.sign({ _id: user._id.toString() }, "shhhhh");
-
   user.tokens = user.tokens.concat({ token: token });
-
   try {
     await user.save();
     res.status(201).send(user);
@@ -29,11 +28,10 @@ userRouter.post("/users", async (req, res) => {
 });
 /////////////////////////////////////////////
 
-//get all users//////////////////////////////
-userRouter.get("/users", async (req, res) => {
+//get profile//////////////////////////////
+userRouter.get("/users/me", auth, async (req, res) => {
   try {
-    const users = await User.find({});
-    res.send(users);
+    res.send(req.user);
   } catch (e) {
     res.status(500).send();
   }

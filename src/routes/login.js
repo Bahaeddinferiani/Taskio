@@ -2,7 +2,7 @@ const express = require("express");
 const loginRouter = express.Router();
 const bcrypt = require("bcrypt");
 const validator = require("validator");
-const user = require("./../models/user");
+const user = require("../models/user");
 var jwt = require("jsonwebtoken");
 
 //login user//////////////////////////////////
@@ -16,19 +16,19 @@ loginRouter.post("/login", async (req, res) => {
     return res.status(400).send("email not valid");
   }
 
-  const userInfo = await user.find({ email }).lean();
+  const userInfo = await user.findOne({ email });
 
   if (Object.keys(userInfo).length === 0) {
     return res.status(404).send("no accounts found");
   }
 
-  let access = await bcrypt.compare(password, userInfo[0].password);
-  const token = jwt.sign({ _id: userInfo[0]._id.toString() }, "shhhhh");
+  let access = await bcrypt.compare(password, userInfo.password);
+  const token = jwt.sign({ _id: userInfo._id.toString() }, "shhhhh");
   var decoded = await jwt.verify(token, "shhhhh");
-  userInfo[0].tokens = userInfo[0].tokens.concat({ token: token });
-
+  userInfo.tokens = userInfo.tokens.concat({ token: token });
+  userInfo.save();
   if (access) {
-    return res.send("logged in!");
+    return res.send(userInfo);
   }
   res.send("Password is incorrect!");
 });
