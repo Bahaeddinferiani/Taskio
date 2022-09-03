@@ -27,6 +27,18 @@ userRouter.post("/users", async (req, res) => {
   }
 });
 /////////////////////////////////////////////
+//logout/////////////////////////////////////
+userRouter.post("/users/logout", auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter((token) => {
+      return token.token !== req.token;
+    });
+    req.user.save();
+    res.send(req.user.tokens);
+  } catch (e) {
+    res.status(500).send();
+  }
+});
 
 //get profile//////////////////////////////
 userRouter.get("/users/me", auth, async (req, res) => {
