@@ -5,14 +5,13 @@ const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
 
-//hashing pwd/////////////////////////////////
+//hashing pwd
 const securepwd = async (pwd) => {
   let hashed = await bcrypt.hash(pwd, 4);
   return hashed;
 };
-//////////////////////////////////////////////
 
-//create user (name,age,email,pwd)////////////
+//create user
 userRouter.post("/users", async (req, res) => {
   let userInfo = req.body;
   userInfo.password = await securepwd(userInfo.password);
@@ -26,9 +25,8 @@ userRouter.post("/users", async (req, res) => {
     res.status(400).send(e);
   }
 });
-/////////////////////////////////////////////
 
-//logout/////////////////////////////////////
+//logout
 userRouter.post("/users/logout", auth, async (req, res) => {
   try {
     req.user.tokens = req.user.tokens.filter((token) => {
@@ -41,7 +39,7 @@ userRouter.post("/users/logout", auth, async (req, res) => {
   }
 });
 
-//get profile//////////////////////////////
+//get profile
 userRouter.get("/users/me", auth, async (req, res) => {
   try {
     res.send(req.user);
@@ -49,29 +47,10 @@ userRouter.get("/users/me", auth, async (req, res) => {
     res.status(500).send();
   }
 });
-/////////////////////////////////////////////
 
-//get user by id/////////////////////////////
-userRouter.get("/users/:id", async (req, res) => {
-  const _id = req.params.id;
-
-  try {
-    const user = await User.findById(_id);
-
-    if (!user) {
-      return res.status(404).send();
-    }
-
-    res.send(user);
-  } catch (e) {
-    res.status(500).send();
-  }
-});
-/////////////////////////////////////////////
-
-//patch user by id///////////////////////////
-userRouter.patch("/users/:id", async (req, res) => {
-  const _id = req.params.id;
+//patch user
+userRouter.patch("/users/me", auth, async (req, res) => {
+  const _id = req.user._id;
   const fields = ["age", "name", "password", "email"];
   const keys = Object.keys(req.body);
   const verify = async () => {
@@ -106,11 +85,10 @@ userRouter.patch("/users/:id", async (req, res) => {
     console.log(e);
   }
 });
-/////////////////////////////////////////////
 
-//delete user ///////////////////////////////
-userRouter.delete("/users/:id", async (req, res) => {
-  const _id = req.params.id;
+//delete user
+userRouter.delete("/users/me", auth, async (req, res) => {
+  const _id = req.user._id;
   const user = await User.findByIdAndRemove(_id, { new: true });
   if (!user) {
     res.status(404).send();
@@ -118,6 +96,5 @@ userRouter.delete("/users/:id", async (req, res) => {
   res.status(200).send();
   await user.save();
 });
-/////////////////////////////////////////////
 
 module.exports = userRouter;
