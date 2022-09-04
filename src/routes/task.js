@@ -1,11 +1,15 @@
 const express = require("express");
 const Tasks = require("../models/task");
+const auth = require("../middleware/auth");
 
 const taskRouter = new express.Router();
 
 //create task/////////////////////////////////
-taskRouter.post("/tasks", async (req, res) => {
-  const task = new Tasks(req.body);
+taskRouter.post("/tasks", auth, async (req, res) => {
+  const description = req.body.description;
+  const completed = req.body.completed;
+  const owner = req.user.toObject()._id;
+  const task = new Tasks({ description, completed, owner });
 
   try {
     await task.save();
@@ -17,9 +21,9 @@ taskRouter.post("/tasks", async (req, res) => {
 /////////////////////////////////////////////
 
 //get all tasks//////////////////////////////
-taskRouter.get("/tasks", async (req, res) => {
+taskRouter.get("/tasks", auth, async (req, res) => {
   try {
-    const tasks = await Tasks.find({});
+    const tasks = await Tasks.find({ owner: req.user._id });
     res.send(tasks);
   } catch (e) {
     res.status(500).send();
