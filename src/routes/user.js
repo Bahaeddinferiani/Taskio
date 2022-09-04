@@ -20,7 +20,7 @@ userRouter.post("/users", async (req, res) => {
   user.tokens = user.tokens.concat({ token: token });
   try {
     await user.save();
-    res.status(201).send(user);
+    res.status(201).send(user.toJSON());
   } catch (e) {
     res.status(400).send(e);
   }
@@ -33,7 +33,7 @@ userRouter.post("/users/logout", auth, async (req, res) => {
       return token.token !== req.token;
     });
     req.user.save();
-    res.send(req.user.tokens);
+    res.send(req.user.toJSON());
   } catch (e) {
     res.status(500).send();
   }
@@ -42,7 +42,7 @@ userRouter.post("/users/logout", auth, async (req, res) => {
 //get profile
 userRouter.get("/users/me", auth, async (req, res) => {
   try {
-    res.send(req.user);
+    res.send(req.user.toJSON());
   } catch (e) {
     res.status(500).send();
   }
@@ -79,7 +79,7 @@ userRouter.patch("/users/me", auth, async (req, res) => {
       return res.status(404).send();
     }
 
-    res.send(user);
+    res.send(user.toJSON());
   } catch (e) {
     res.status(500).send();
     console.log(e);
@@ -88,13 +88,13 @@ userRouter.patch("/users/me", auth, async (req, res) => {
 
 //delete user
 userRouter.delete("/users/me", auth, async (req, res) => {
-  const _id = req.user._id;
-  const user = await User.findByIdAndRemove(_id, { new: true });
-  if (!user) {
-    res.status(404).send();
+  try {
+    await req.user.remove();
+    res.send(req.user.toJSON());
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("error deleting profile");
   }
-  res.status(200).send();
-  await user.save();
 });
 
 module.exports = userRouter;
