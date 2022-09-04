@@ -27,6 +27,7 @@ userRouter.post("/users", async (req, res) => {
   }
 });
 /////////////////////////////////////////////
+
 //logout/////////////////////////////////////
 userRouter.post("/users/logout", auth, async (req, res) => {
   try {
