@@ -1,6 +1,7 @@
 const express = require("express");
 const Tasks = require("../models/task");
 const auth = require("../middleware/auth");
+const { query } = require("express");
 
 const taskRouter = new express.Router();
 
@@ -21,11 +22,19 @@ taskRouter.post("/tasks", auth, async (req, res) => {
 
 //get all tasks
 taskRouter.get("/tasks", auth, async (req, res) => {
+  const match = {};
+  if (req.query.completed) {
+    match.completed = req.query.completed === "true";
+  }
+
   try {
-    const tasks = await Tasks.find({ owner: req.user._id });
+    const tasks = await Tasks.find({
+      owner: req.user._id,
+      completed: match.completed,
+    });
     res.send(tasks);
   } catch (e) {
-    res.status(500).send();
+    res.status(500).send(e);
   }
 });
 
