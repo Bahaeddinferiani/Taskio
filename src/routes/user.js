@@ -25,6 +25,24 @@ userRouter.post("/users", async (req, res) => {
     res.status(400).send(e);
   }
 });
+//file
+const multer = require("multer");
+const upload = multer({
+  dest: "uploads/",
+  limits: {
+    fileSize: 1000000,
+  },
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match("/.(doc|docx|doc)$/")) {
+      return cb(new Error("Please upload a word doc"));
+    }
+    cb(undefined, true);
+  },
+});
+userRouter.post("/profile", upload.single("avatar"), function (req, res) {
+  const data = req.file;
+  res.send(data);
+});
 
 //logout
 userRouter.post("/users/logout", auth, async (req, res) => {
