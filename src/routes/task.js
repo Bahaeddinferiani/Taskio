@@ -22,16 +22,26 @@ taskRouter.post("/tasks", auth, async (req, res) => {
 
 //get all tasks
 taskRouter.get("/tasks", auth, async (req, res) => {
+  const limit = parseInt(req.query.limit);
+  const skip = parseInt(req.query.skip);
+  const sorted = {};
   const match = {};
   if (req.query.completed) {
     match.completed = req.query.completed === "true";
   }
-
+  if (req.query.sortBy) {
+    const parts = req.query.sortBy.split(":");
+    sorted.param = parts[0];
+    sorted.direc = parts[1];
+  }
   try {
     const tasks = await Tasks.find({
       owner: req.user._id,
       completed: match.completed,
-    });
+    })
+      .limit(limit)
+      .skip(skip)
+      .sort([[sorted.param, sorted.direc]]);
     res.send(tasks);
   } catch (e) {
     res.status(500).send(e);
@@ -51,7 +61,7 @@ taskRouter.get("/tasks/:id", auth, async (req, res) => {
 
     res.send(task);
   } catch (e) {
-    res.status(500).send();
+    res.status(500).send(e);
   }
 });
 
