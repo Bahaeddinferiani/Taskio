@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
 const multer = require("multer");
+const sharp = require("sharp");
 const upload = multer({
   limits: {
     fileSize: 1000000,
@@ -45,7 +46,11 @@ userRouter.post(
   },
   auth,
   async (req, res) => {
-    req.user.avatar = req.file.buffer;
+    const buffer = await sharp(req.file.buffer)
+      .resize({ width: 250, height: 250 })
+      .png()
+      .toBuffer();
+    req.user.avatar = buffer;
     await req.user.save();
     res.send("saved successfully");
   }
@@ -115,6 +120,23 @@ userRouter.delete("/users/me", auth, async (req, res) => {
   } catch (e) {
     console.log(e);
     res.status(500).send("error deleting profile");
+  }
+});
+
+//serve avatars
+
+userRouter.get("/users/:id/avatar", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user || !user.avatar) {
+      throw new Error();
+    }
+
+    res.set("Content-Type", "image/png");
+    res.send(user.avatar);
+  } catch (e) {
+    res.status(404).send(e);
   }
 });
 
