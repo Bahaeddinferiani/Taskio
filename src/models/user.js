@@ -23,6 +23,9 @@ const usermodel = new mongoose.Schema(
         }
       },
     },
+    avatar: {
+      type: Buffer,
+    },
 
     tokens: [
       {

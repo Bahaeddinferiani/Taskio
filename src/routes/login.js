@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const validator = require("validator");
 const user = require("../models/user");
 var jwt = require("jsonwebtoken");
+const auth = require("../middleware/auth");
 
 //login user//////////////////////////////////
 
@@ -32,6 +33,18 @@ loginRouter.post("/login", async (req, res) => {
   }
   res.send("Password is incorrect!");
 });
-//////////////////////////////////////////////
+
+//logout
+loginRouter.post("/users/logout", auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter((token) => {
+      return token.token !== req.token;
+    });
+    req.user.save();
+    res.send(req.user.toJSON());
+  } catch (e) {
+    res.status(500).send();
+  }
+});
 
 module.exports = loginRouter;

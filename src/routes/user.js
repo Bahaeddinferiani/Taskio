@@ -2,9 +2,20 @@ const express = require("express");
 const User = require("../models/user");
 const userRouter = new express.Router();
 const bcrypt = require("bcrypt");
-var jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
-
+const multer = require("multer");
+const upload = multer({
+  limits: {
+    fileSize: 1000000,
+  },
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/.(jpg|png|jpeg)$/)) {
+      return cb(new Error("Please upload an image file"));
+    }
+    cb(undefined, true);
+  },
+});
 //hashing pwd
 const securepwd = async (pwd) => {
   let hashed = await bcrypt.hash(pwd, 4);
@@ -25,36 +36,28 @@ userRouter.post("/users", async (req, res) => {
     res.status(400).send(e);
   }
 });
-//file
-const multer = require("multer");
-const upload = multer({
-  dest: "uploads/",
-  limits: {
-    fileSize: 1000000,
+//adding image to profile
+userRouter.post(
+  "/users/me/avatar",
+  upload.single("avatar"),
+  (err, req, res, next) => {
+    res.status(400).send("please provide image file");
   },
-  fileFilter(req, file, cb) {
-    if (!file.originalname.match("/.(doc|docx|doc)$/")) {
-      return cb(new Error("Please upload a word doc"));
-    }
-    cb(undefined, true);
-  },
-});
-userRouter.post("/profile", upload.single("avatar"), function (req, res) {
-  const data = req.file;
-  res.send(data);
-});
-
-//logout
-userRouter.post("/users/logout", auth, async (req, res) => {
-  try {
-    req.user.tokens = req.user.tokens.filter((token) => {
-      return token.token !== req.token;
-    });
-    req.user.save();
-    res.send(req.user.toJSON());
-  } catch (e) {
-    res.status(500).send();
+  auth,
+  async (req, res) => {
+    req.user.avatar = req.file.buffer;
+    await req.user.save();
+    res.send("saved successfully");
   }
+);
+//delete avatar
+userRouter.delete("/users/me/avatar", auth, async (req, res) => {
+  if (!req.user.avatar) {
+    return res.status(400).send("no image found");
+  }
+  req.user.avatar = undefined;
+  await req.user.save();
+  res.send("image deleted successfully");
 });
 
 //get profile
