@@ -1,6 +1,8 @@
 const express = require("express");
 const loginRouter = express.Router();
 const bcrypt = require("bcrypt");
+require("dotenv").config();
+
 const validator = require("validator");
 const user = require("../models/user");
 var jwt = require("jsonwebtoken");
@@ -24,8 +26,8 @@ loginRouter.post("/login", async (req, res) => {
   }
 
   let access = await bcrypt.compare(password, userInfo.password);
-  const token = jwt.sign({ _id: userInfo._id.toString() }, "shhhhh");
-  var decoded = await jwt.verify(token, "shhhhh");
+  const token = jwt.sign({ _id: userInfo._id.toString() }, process.env.JWT);
+  var decoded = await jwt.verify(token, process.env.JWT);
   userInfo.tokens = userInfo.tokens.concat({ token: token });
   userInfo.save();
   if (access) {
